@@ -1,0 +1,72 @@
+*** 测试脚本测试文件为临时生成,实际效果应该还会好一些
+测试环境
+tracker:openstack 4核 16G 20G 单个python进程
+storage:openstack 4核 16G 20G
+upload client: Mac Mini 4核  8G
+
+基础测试
+上传文件数: 100
+单个文件大小: 10M
+模拟用户: 1
+上传间隔: 0.1s
+传输速度为 21.7M/s
+平均每个文件花费 0.46s
++---------------------+-------+
+|         key         | value |
++---------------------+-------+
+|  One File Size (M)  |   10  |
+|  All File Size (M)  |  1000 |
+| Process Count(user) |   1   |
+|     Upload Count    |  100  |
+|   Interval Time(s)  |  0.1  |
+|    Success count    |  100  |
+|      Fail count     |   0   |
+|  Success ratio (%)  | 100.0 |
+|     Use time (s)    | 46.06 |
++---------------------+-------+
+
+
+低压测试
+上传文件数: 50
+单个文件大小: 10M
+模拟用户: 5
+上传间隔: 0s
+传输速度为 37.44M/s
+平均每个文件花费 0.26s
+这时已经明显有些链接处理效率变慢了,达到了4000ms,单个进程的瓶颈
+在做域空间清空时,删除过快,状态页面会迟些才能显示正确
++---------------------+-------+
+|         key         | value |
++---------------------+-------+
+|  One File Size (M)  |   10  |
+|  All File Size (M)  |  2500 |
+| Process Count(user) |   5   |
+|     Upload Count    |  250  |
+|   Interval Time(s)  |   0   |
+|    Success count    |  250  |
+|      Fail count     |   0   |
+|  Success ratio (%)  | 100.0 |
+|     Use time (s)    | 66.76 |
++---------------------+-------+
+
+
+常速测试
+上传文件数: 400
+单个文件大小: 10M
+模拟用户: 2
+上传间隔: 1s
+传输速度为 14.47M/s
+平均每个文件花费 0.69s
++---------------------+--------+
+|         key         | value  |
++---------------------+--------+
+|  One File Size (M)  |   10   |
+|  All File Size (M)  |  4000  |
+| Process Count(user) |   2    |
+|     Upload Count    |  400   |
+|   Interval Time(s)  |   1    |
+|    Success count    |  400   |
+|      Fail count     |   0    |
+|  Success ratio (%)  | 100.0  |
+|     Use time (s)    | 276.30 |
++---------------------+--------+

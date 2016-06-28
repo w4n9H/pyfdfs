@@ -1,0 +1,215 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="60">
+    <title>AVL FDFS Status</title>
+    <link rel="stylesheet" href="./css/bootstrap.min.css">
+    <link rel="stylesheet" href="./css/bootstrap-theme.css">
+    <script src="./js/bootstrap.min.js"></script>
+    <script src="./js/angular.min.js"></script>
+</head>
+<body ng-app="fdfs_status" ng-controller="userCtrl">
+    <nav class="navbar navbar-inverse">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="#">FDFS</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div name="storage_status">
+            <div class="page-header" ng-init="storage_update()">
+                <h3>FDFS 集群状态显示
+                    <small> -- Fdfs Storage Status</small>
+                    <button type="submit" class="btn btn-success" ng-click="storage_update()">更新</button>
+                </h3>
+                <table class="table table-condensed table-bordered">
+                    <caption>整体状态显示</caption>
+                    <thead>
+                    <tr>
+                        <th>Group数量</th>
+                        <th>总存储Server数量</th>
+                        <th>在线Server数量</th>
+                        <th>总空间</th>
+                        <th>总使用空间</th>
+                        <th>总剩余空间</th>
+                        <th>使用率</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>
+                            <span>{{ fdfs.group_count }}</span>
+                        </td>
+                        <td>
+                            <span>{{ fdfs.storage_count }}</span>
+                        </td>
+                        <td>
+                            <span>{{ fdfs.active_storage }}</span>
+                        </td>
+                        <td>
+                            <span>{{ fdfs.total_mb / 1024 | number:2 }} GB</span>
+                        </td>
+                        <td>
+                            <span>{{ fdfs.used_mb / 1024 | number:2 }} GB</span>
+                        </td>
+                        <td>
+                            <span>{{ fdfs.free_mb / 1024 | number:2 }} GB</span>
+                        </td>
+                        <td>
+                            <span ng-if="90 > (1 - fdfs.free_mb / fdfs.total_mb) * 100 >= 90" style="background: yellow;">
+                                {{ (1 - fdfs.free_mb / fdfs.total_mb) * 100 | number:2 }} %
+                            </span>
+                            <span ng-if="(1 - fdfs.free_mb / fdfs.total_mb) * 100 >= 90" style="background: red;">
+                                {{ (1 - fdfs.free_mb / fdfs.total_mb) * 100 | number:2 }} %
+                            </span>
+                            <span ng-if="(1 - fdfs.free_mb / fdfs.total_mb) * 100 < 80" style="background: green;">
+                                {{ (1 - fdfs.free_mb / fdfs.total_mb) * 100 | number:2 }} %
+                            </span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <table class="table table-condensed table-bordered">
+                    <caption>Group状态显示</caption>
+                    <thead>
+                    <tr>
+                        <th>Group名称</th>
+                        <th>Group总Server数量</th>
+                        <th>Group在线Server数量</th>
+                        <th>Group空间</th>
+                        <th>Group使用空间</th>
+                        <th>Group剩余空间</th>
+                        <th>Group空间使用率</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="group in groups">
+                        <td>
+                            <span>{{ group.group_name }}</span>
+                        </td>
+                        <td>
+                            <span>{{ group.server_count }}</span>
+                        </td>
+                        <td>
+                            <span>{{ group.active_count }}</span>
+                        </td>
+                        <td>
+                            <span>{{ group.total_mb / 1024 | number:2 }} GB</span>
+                        </td>
+                        <td>
+                            <span>{{ (group.total_mb - group.free_mb) / 1024 | number:2  }} GB</span>
+                        </td>
+                        <td>
+                            <span>{{ group.free_mb / 1024 | number:2 }} GB</span>
+                        </td>
+                        <td>
+                            <span ng-if="90 > (1 - group.free_mb / group.total_mb) * 100 >= 90" style="background: yellow;">
+                                {{ (1 - group.free_mb / group.total_mb) * 100 | number:2 }} %
+                            </span>
+                            <span ng-if="(1 - group.free_mb / group.total_mb) * 100 >= 90" style="background: red;">
+                                {{ (1 - group.free_mb / group.total_mb) * 100 | number:2 }} %
+                            </span>
+                            <span ng-if="(1 - group.free_mb / group.total_mb) * 100 < 80" style="background: green;">
+                                {{ (1 - group.free_mb / group.total_mb) * 100 | number:2 }} %
+                            </span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <table class="table table-condensed table-bordered">
+                    <caption>Server状态显示</caption>
+                    <thead>
+                    <tr>
+                        <th>ServerHost</th>
+                        <th>所属Group</th>
+                        <th>FDFS版本</th>
+                        <th>启动时间</th>
+                        <th>当前状态</th>
+                        <th>挂载磁盘数量</th>
+                        <th>Server空间</th>
+                        <th>Server使用空间</th>
+                        <th>Server剩余空间</th>
+                        <th>Server空间使用率</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="server in servers">
+                        <td>
+                            <span>{{ server.ip_addr }}</span>
+                        </td>
+                        <td>
+                            <span>{{ server.group }}</span>
+                        </td>
+                        <td>
+                            <span>{{ server.version }}</span>
+                        </td>
+                        <td>
+                            <span>{{ server.up_time }}</span>
+                        </td>
+                        <td>
+                            <span>{{ server.status }}</span>
+                        </td>
+                        <td>
+                            <span>{{ server.store_path_count }}</span>
+                        </td>
+                        <td>
+                            <span>{{ server.total_mb / 1024 | number:2 }} GB</span>
+                        </td>
+                        <td>
+                            <span>{{ (server.total_mb - server.free_mb) / 1024 | number:2 }} GB</span>
+                        </td>
+                        <td>
+                            <span>{{ server.free_mb / 1024 | number:2 }} GB</span>
+                        </td>
+                        <td>
+                            <span ng-if="90 > (1 - server.free_mb / server.total_mb) * 100 >= 90" style="background: yellow;">
+                                {{ (1 - server.free_mb / server.total_mb) * 100 | number:2 }} %
+                            </span>
+                            <span ng-if="(1 - server.free_mb / server.total_mb) * 100 >= 90" style="background: red;">
+                                {{ (1 - server.free_mb / server.total_mb) * 100 | number:2 }} %
+                            </span>
+                            <span ng-if="(1 - server.free_mb / server.total_mb) * 100 < 80" style="background: green;">
+                                {{ (1 - server.free_mb / server.total_mb) * 100 | number:2 }} %
+                            </span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div>
+            <div class="page-header">
+                <h3>FDFS 上传测试
+                    <small> -- Fdfs Upload Test</small>
+                </h3>
+                <form class="form-inline" role="form" action="http://192.168.11.129:8080/v1/upload_test?domain=test" method="post" enctype ="multipart/form-data">
+                    <div class="form-group">
+                        <input type="file" id="file" name="file">
+                        <p class="help-block">下载时可使用 http://192.168.11.77:8080/v1/download/test/文件名</p>
+                    </div>
+                    <button type="submit" class="btn btn-success">上传</button>
+                </form>
+            </div>
+        </div>
+        <div>
+            <div class="page-header">
+                <h3>PyFDFS API 使用教程
+                    <small> -- pyfdfs api</small>
+                </h3>
+            </div>
+            <div>
+                <div class="alert alert-success" role="alert">
+                    <p>文件上传 POST http://xxx.xxx.xxx.xxx/v1/upload?domain=xxxxx (可设置域空间,不设置默认 default)</p>
+                    <p>文件上传 POST http://xxx.xxx.xxx.xxx/v1/upload_test (可设置域空间,不设置默认 default, 会计算hash)</p>
+                    <p>curl -F file=@xxxxxxxx http://192.168.11.129:8080/v1/upload_test?domain=test</p>
+                    <p>文件下载 GET http://xxx.xxx.xxx.xxx/v1/download/domain(域名称)/file_name(文件名)</p>
+                    <p>wget http://192.168.11.129:8080/v1/download/test/xxxxxxxx</p>
+                    <p>文件信息 GET http://xxx.xxx.xxx.xxx/v1/info/domain(域名称)/file_name(文件名)</p>
+                    <p>存储服务器状态 GET http://xxx.xxx.xxx.xxx/v1/storage</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="./js/storage.js"></script>
+</body>
+</html>

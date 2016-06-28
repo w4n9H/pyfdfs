@@ -1,0 +1,24 @@
+1. FastDFS适用的场景以及不适用的场景？
+FastDFS是一套分布式文件存储系统，非常适合用来存储用户图片、视频、文档等文件。
+和其他分布式文件系统相比，优势非常明显。
+出于简洁考虑，FastDFS没有对文件做分块存储，因此不太适合分布式计算场景
+
+2.Tracker 配置文件
+disabled=false
+run_by_group=fdfs
+run_by_user=fdfs
+bind_addr=
+port=22122
+base_path=/opt/fastdfs/tracker
+connect_timeout=30
+network_timeout=60
+max_connections=256
+accept_threads=1
+work_threads=4
+store_lookup=2
+store_group=group2
+store_server=0
+store_path=0
+
+
+3.

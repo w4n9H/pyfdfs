@@ -1,0 +1,303 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh">
+    <title>AVL FDFS Status</title>
+    <link rel="stylesheet" href="{{ static_url("css/bootstrap.min.css") }}">
+    <link rel="stylesheet" href="{{ static_url("css/bootstrap-theme.css") }}">
+</head>
+<body>
+    <nav class="navbar navbar-inverse">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="#">FDFS</a>
+        </div>
+        <div>
+            <form class="navbar-form navbar-right" role="search">
+                <input type="checkbox" onclick="toggleAutoRefresh(this);" id="reloadCB"> <span style="color: white">    自动刷新</span>
+            </form>
+        </div>
+    </nav>
+    <div class="container">
+        <div name="storage_status">
+            <div class="page-header">
+                <h3>FDFS 集群状态显示
+                    <small> -- Fdfs Storage Status</small>
+                </h3>
+                <table class="table table-condensed table-bordered">
+                    <caption>整体状态显示</caption>
+                    <thead>
+                    <tr>
+                        <th>Group数量</th>
+                        <th>总存储Server数量</th>
+                        <th>在线Server数量</th>
+                        <th>总空间</th>
+                        <th>总使用空间</th>
+                        <th>总剩余空间</th>
+                        <th>使用率</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>
+                            <span>{{ all_info['group_count'] }}</span>
+                        </td>
+                        <td>
+                            <span>{{ all_info['storage_count'] }}</span>
+                        </td>
+                        <td>
+                            <span>{{ all_info['active_storage'] }}</span>
+                        </td>
+                        <td>
+                            <span>{{ round(all_info['total_mb']/float(1024), 2) }} GB</span>
+                        </td>
+                        <td>
+                            <span>{{ round(all_info['used_mb']/float(1024), 2) }} GB</span>
+                        </td>
+                        <td>
+                            <span>{{ round(all_info['free_mb']/float(1024), 2) }} GB</span>
+                        </td>
+                        {%set usage = round(all_info['used_mb']/float(all_info['total_mb']), 4) * 100 %}
+                        {% if usage >= 95 %}
+                            <td bgcolor="red">{{ usage }} %</td>
+                        {% elif usage < 95 and usage >= 90 %}
+                            <td bgcolor="yellow">{{ usage }} %</td>
+                        {% else %}
+                            <td bgcolor="green">{{ usage }} %</td>
+                        {% end %}
+                    </tr>
+                    </tbody>
+                </table>
+                <table class="table table-condensed table-bordered">
+                    <caption>Group状态显示</caption>
+                    <thead>
+                    <tr>
+                        <th>Group名称</th>
+                        <th>Group总Server数量</th>
+                        <th>Group在线Server数量</th>
+                        <th>Group空间</th>
+                        <th>Group使用空间</th>
+                        <th>Group剩余空间</th>
+                        <th>Group空间使用率</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                        {% for group in all_group %}
+                            <tr>
+                                <td>
+                                    <span>{{ group['group_name'] }}</span>
+                                </td>
+                                <td>
+                                    <span>{{ group['server_count'] }}</span>
+                                </td>
+                                <td>
+                                    <span>{{ group['active_count'] }}</span>
+                                </td>
+                                <td>
+                                    <span>{{ round(group['total_mb']/float(1024), 2) }} GB</span>
+                                </td>
+                                <td>
+                                    <span>{{ round((group['total_mb'] - group['free_mb'])/float(1024), 2) }} GB</span>
+                                </td>
+                                <td>
+                                    <span>{{ round(group['free_mb']/float(1024), 2) }} GB</span>
+                                </td>
+                                {%set usage_group = round((group['total_mb']-group['free_mb'])/float(group['total_mb']), 5) * 100 %}
+                                {% if usage_group >= 95 %}
+                                    <td bgcolor="red">{{ usage_group }} %</td>
+                                {% elif usage_group < 95 and usage_group >= 90 %}
+                                    <td bgcolor="yellow">{{ usage_group }} %</td>
+                                {% else %}
+                                    <td bgcolor="green">{{ usage_group }} %</td>
+                                {% end %}
+                            </tr>
+                        {% end %}
+                    </tbody>
+                </table>
+                <table class="table table-condensed table-bordered">
+                    <caption>Server状态显示</caption>
+                    <thead>
+                    <tr>
+                        <th>ServerHost</th>
+                        <th>所属Group</th>
+                        <th>FDFS版本</th>
+                        <th>启动时间</th>
+                        <th>当前状态</th>
+                        <th>挂载磁盘数量</th>
+                        <th>Server空间</th>
+                        <th>Server使用空间</th>
+                        <th>Server剩余空间</th>
+                        <th>Server空间使用率</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                        {% for server in group_detail %}
+                            <tr>
+                                <td>
+                                    <span>{{ server['ip_addr'] }}</span>
+                                </td>
+                                <td>
+                                    <span>{{ server['group'] }}</span>
+                                </td>
+                                <td>
+                                    <span>{{ server['version'] }}</span>
+                                </td>
+                                <td>
+                                    <span>{{ server['up_time'] }}</span>
+                                </td>
+                                <td>
+                                    <span>{{ server['status'] }}</span>
+                                </td>
+                                <td>
+                                    <span>{{ server['store_path_count'] }}</span>
+                                </td>
+                                <td>
+                                    <span>{{ round(server['total_mb']/float(1024), 2) }} GB</span>
+                                </td>
+                                <td>
+                                    <span>{{ round((server['total_mb']-server['free_mb'])/float(1024), 2) }} GB</span>
+                                </td>
+                                <td>
+                                    <span>{{ round(server['free_mb']/float(1024), 2)}} GB</span>
+                                </td>
+                                {%set usage_server = round((server['total_mb'] - server['free_mb'])/float(server['total_mb']), 5) * 100 %}
+                                {% if usage_server >= 95 %}
+                                    <td bgcolor="red">{{ usage_server }} %</td>
+                                {% elif usage_server < 95 and usage_server >= 90 %}
+                                    <td bgcolor="yellow">{{ usage_server }} %</td>
+                                {% else %}
+                                    <td bgcolor="green">{{ usage_server }} %</td>
+                                {% end %}
+                            </tr>
+                        {% end %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div>
+            <div class="page-header">
+                <h3>FDFS 上传测试
+                    <small> -- Fdfs Upload Test</small>
+                </h3>
+                <form class="form-horizontal" role="form" id="myForm">
+                    <fieldset>
+                        <div class="form-group">
+                            <label class="col-sm-1 control-label">文件选择:</label>
+                            <div class="col-sm-6">
+                                <input type="file" name="file" id="file_upload" value=""
+                                       class="form-control" placeholder="文件地址">
+                            </div>
+                            <a type="submit" class="btn btn-success" onclick="uploadByForm();" id="btnAjax">upload</a>
+                        </div>
+                    </fieldset>
+                </form>
+                <ol id="download_url"></ol>
+            </div>
+        </div>
+        <div>
+            <div class="page-header">
+                <h3>FDFS 文件查询
+                    <small> -- Fdfs File Query</small>
+                </h3>
+                <form class="form-horizontal" role="form">
+                    <fieldset>
+                        <legend>查询文件信息</legend>
+                        <div class="form-group">
+                            <label class="col-sm-1 control-label">域空间:</label>
+                            <div class="col-sm-3">
+                                <input class="form-control" type="text" value="test" id="input_domain_name"/>
+                            </div>
+                            <label class="col-sm-1 control-label">文件名:</label>
+                            <div class="col-sm-5">
+                                <input class="form-control" type="text" id="input_file_name"/>
+                            </div>
+                            <a type="submit" class="btn btn-success" onclick="query_info();">查询</a>
+                        </div>
+                    </fieldset>
+                </form>
+                <table class="table table-striped table-condensed">
+                    <h4>FDFS 数据展示</h4>
+                    <thead>
+                    <tr>
+                        <th>文件名</th>
+                        <th>MD5</th>
+                        <th>CRC32</th>
+                        <th>文件大小</th>
+                        <th>域空间</th>
+                        <th>下载</th>
+                    </tr>
+                    </thead>
+                    <tbody id="fdfs_query_file">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div>
+            <div class="page-header">
+                <h3>PyFDFS API 使用教程
+                    <small> -- pyfdfs api</small>
+                </h3>
+            </div>
+            <div>
+                <div class="alert" role="alert">
+                    <table class="table table-bordered table-condensed">
+                        <thead>
+                        <tr>
+                            <th>接口</th>
+                            <th>功能</th>
+                            <th>参数</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td>POST /v1/upload</td>
+                            <td>上传文件</td>
+                            <td>/v1/upload?domain=xxxxx&filename=xxxxx&hash=false&replace=false<br />
+                                domain:域空间(默认:test),filename:文件名,hash:计算hash(默认:false),replace:覆盖(默认false)</td>
+                        </tr>
+                        <tr>
+                            <td>GET /v1/download</td>
+                            <td>下载文件</td>
+                            <td>/v1/download/domain(域名称)/file_name(文件名)</td>
+                        </tr>
+                        <tr>
+                            <td>GET /v1/info</td>
+                            <td>获取文件信息</td>
+                            <td>/v1/info/domain(域名称)/file_name(文件名)</td>
+                        </tr>
+                        <tr>
+                            <td>GET /v1/list_file</td>
+                            <td>获取文件列表</td>
+                            <td>/v1/list_file?domain=test&limit=100 (默认domain:test,默认limit:10)</td>
+                        </tr>
+                        <tr>
+                            <td>GET /v1/create_domain</td>
+                            <td>创建domain</td>
+                            <td>/v1/create_domain/domain_name(域名称)</td>
+                        </tr>
+                        <tr>
+                            <td>GET /v1/delete_domain</td>
+                            <td>删除非空domain</td>
+                            <td>/v1/delete_domain/domain_name(域名称)</td>
+                        </tr>
+                        <tr>
+                            <td>GET /v1/storage</td>
+                            <td>获取集群状态</td>
+                            <td>/v1/storage</td>
+                        </tr>
+                        <tr>
+                            <td>GET /v1/list_domain</td>
+                            <td>获取domain列表</td>
+                            <td>/v1/list_domain</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="{{ static_url("js/auto_refresh.js") }}"></script>
+    <script src="{{ static_url("js/upload.js") }}"></script>
+    <script src="{{ static_url("js/jquery-2.2.1.min.js") }}"></script>
+    <script src="{{ static_url("js/bootstrap.min.js") }}"></script>
+</body>
+</html>
